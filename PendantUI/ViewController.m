@@ -143,28 +143,15 @@
     self.pageControl.userInteractionEnabled = NO; // 禁止手动点击
     [gradientBackgroundView addSubview:self.pageControl];
     self.pageControl.translatesAutoresizingMaskIntoConstraints = NO;
-    // 缩小40%，并向下平移10pt
-    self.pageControl.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(0.6, 0.6), CGAffineTransformMakeTranslation(0, 10));
+    self.pageControl.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(0.6, 0.6), CGAffineTransformMakeTranslation(0, 15));
     // 约束：居中于 gradientBackgroundView 底部，距离底部8pt
     [NSLayoutConstraint activateConstraints:@[
         [self.pageControl.centerXAnchor constraintEqualToAnchor:gradientBackgroundView.centerXAnchor],
         [self.pageControl.bottomAnchor constraintEqualToAnchor:gradientBackgroundView.bottomAnchor constant:-8]
     ]];
-    // 详细注释：
-    // pageControl 缩小40%，整体向下平移10pt，显示两个小圆点，提示当前轮播页，居中于 gradientBackgroundView 底部
-
-    // 监听 scrollView 滑动，动态更新 pageControl.currentPage
-    __weak typeof(carouselScrollView) weakScrollView = carouselScrollView;
-    __weak typeof(self.pageControl) weakPageControl = self.pageControl;
-    // 使用 block 方式监听 scrollViewDidScroll
+    
     // 需在 ViewController.h 声明 <UIScrollViewDelegate> 并设置代理
     carouselScrollView.delegate = (id<UIScrollViewDelegate>)self;
-    // 在 ViewController.m 末尾添加代理方法：
-    // - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    //     CGFloat pageWidth = scrollView.frame.size.width;
-    //     NSInteger page = (NSInteger)(scrollView.contentOffset.x / pageWidth + 0.5);
-    //     self->pageControl.currentPage = page;
-    // }
 
     // 3. 创建 bottomBarView 底部栏
     UIView *bottomBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 112, 20)];
@@ -181,8 +168,6 @@
         [bottomBarView.topAnchor constraintEqualToAnchor:gradientBackgroundView.bottomAnchor constant:0],
         [bottomBarView.centerXAnchor constraintEqualToAnchor:containerView.centerXAnchor]
     ]];
-    // 详细注释：
-    // bottomBarView 现在为整体圆滑的条形Bar，宽112高20，四角均为圆角
 
     // 4. 在 bottomBarView 内部居中添加文字标签
     UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 93, 14)];
@@ -297,12 +282,6 @@
     [self createCustomLabelWithText:@"唱歌十强争夺" fontSize:11 width:91 height:20 top:19 parent:containerView];
 }
 
-// 实现轮播控件的页码联动
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    CGFloat pageWidth = scrollView.frame.size.width;
-    NSInteger page = (NSInteger)(scrollView.contentOffset.x / pageWidth + 0.5);
-    self.pageControl.currentPage = page;
-}
 
 // plusButton点击事件，弹出提示框
 - (void)plusButtonTapped:(UIButton *)sender {
