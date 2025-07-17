@@ -263,6 +263,88 @@
     [plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
     // 详细注释：
     // plusButton 为14x14透明按钮，覆盖plusContainerView中心，点击弹出提示框
+
+    // 在 containerView 中添加文本Label，无阴影容器
+    UILabel *shadowLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 91, 20)];
+    shadowLabel.textColor = [UIColor colorWithRed:0.987 green:0.987 blue:0.987 alpha:1];
+    shadowLabel.font = [UIFont systemFontOfSize:11];
+    shadowLabel.textAlignment = NSTextAlignmentCenter;
+    // 设置段落样式
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    paragraphStyle.lineHeightMultiple = 1.21;
+    paragraphStyle.alignment = NSTextAlignmentCenter;
+    // 富文本设置，使用系统字体，保证字体大小生效
+    NSDictionary *attr = @{
+        NSFontAttributeName: [UIFont systemFontOfSize:9], // 使用系统字体
+        NSKernAttributeName: @-0.3, // 字间距-0.3pt
+        NSParagraphStyleAttributeName: paragraphStyle
+    };
+    shadowLabel.attributedText = [[NSAttributedString alloc] initWithString:@"唱歌十强争夺" attributes:attr];
+    [containerView addSubview:shadowLabel];
+    shadowLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    // 约束：宽91，高20，左侧对齐containerView左侧，右偏10，顶部距containerView顶部19
+    [NSLayoutConstraint activateConstraints:@[
+        [shadowLabel.widthAnchor constraintEqualToConstant:91],
+        [shadowLabel.heightAnchor constraintEqualToConstant:20],
+        [shadowLabel.leadingAnchor constraintEqualToAnchor:containerView.leadingAnchor constant:10],
+        [shadowLabel.topAnchor constraintEqualToAnchor:containerView.topAnchor constant:19]
+    ]];
+    // 详细注释：
+    // shadowLabel为无阴影文本，宽91高20，左10顶19，浅白色，字体MFYuanHei-Regular 11pt，行高1.21，字间距-0.22，居中
+
+    // 在containerView中添加一个UILabel，尺寸20x12，系统字体10pt，行高0.86倍，文本“沾沾”
+    UILabel *zzLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 20, 12)];
+    zzLabel.text = @"沾沾";
+    zzLabel.textColor = [UIColor whiteColor];
+    zzLabel.font = [UIFont systemFontOfSize:10];
+    zzLabel.textAlignment = NSTextAlignmentCenter;
+    // 设置段落样式，行高为字体大小的0.86倍
+    NSMutableParagraphStyle *zzParagraphStyle = [[NSMutableParagraphStyle alloc] init];
+    zzParagraphStyle.lineHeightMultiple = 0.86;
+    zzParagraphStyle.alignment = NSTextAlignmentCenter;
+    NSDictionary *zzAttr = @{
+        NSFontAttributeName: [UIFont systemFontOfSize:10],
+        NSParagraphStyleAttributeName: zzParagraphStyle
+    };
+    zzLabel.attributedText = [[NSAttributedString alloc] initWithString:@"沾沾" attributes:zzAttr];
+    [containerView addSubview:zzLabel];
+    zzLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    // 约束：宽20，高12，水平居中，顶部距离containerView顶部108pt，文字垂直居中
+    [NSLayoutConstraint activateConstraints:@[
+        [zzLabel.widthAnchor constraintEqualToConstant:20],
+        [zzLabel.heightAnchor constraintEqualToConstant:12],
+        [zzLabel.centerXAnchor constraintEqualToAnchor:containerView.centerXAnchor],
+        [zzLabel.topAnchor constraintEqualToAnchor:containerView.topAnchor constant:108]
+    ]];
+    // 详细注释：
+    // zzLabel为20x12，系统字体10pt，行高0.86倍，文本“沾沾”，父视图为containerView，水平居中，顶部距父视图108pt，文字垂直居中
+
+    // 在containerView中添加一个UILabel，尺寸20x12，系统字体10pt，颜色白色，行高0.86倍，文本“巅峰冠军”
+    UILabel *dfgjLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 70, 12)];
+    dfgjLabel.text = @"巅峰冠军";
+    dfgjLabel.textColor = [UIColor whiteColor];
+    dfgjLabel.font = [UIFont systemFontOfSize:10];
+    dfgjLabel.textAlignment = NSTextAlignmentCenter;
+    // 设置段落样式，行高为字体大小的0.86倍
+    NSMutableParagraphStyle *dfgjParagraphStyle = [[NSMutableParagraphStyle alloc] init];
+    dfgjParagraphStyle.lineHeightMultiple = 0.86;
+    dfgjParagraphStyle.alignment = NSTextAlignmentCenter;
+    NSDictionary *dfgjAttr = @{
+        NSFontAttributeName: [UIFont systemFontOfSize:10],
+        NSParagraphStyleAttributeName: dfgjParagraphStyle
+    };
+    dfgjLabel.attributedText = [[NSAttributedString alloc] initWithString:@"巅峰冠军" attributes:dfgjAttr];
+    [containerView addSubview:dfgjLabel];
+    dfgjLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    // 约束：宽20，高12，水平居中，顶部距离containerView顶部122pt，文字垂直居中
+    [NSLayoutConstraint activateConstraints:@[
+        [dfgjLabel.widthAnchor constraintEqualToConstant:70],
+        [dfgjLabel.heightAnchor constraintEqualToConstant:12],
+        [dfgjLabel.centerXAnchor constraintEqualToAnchor:containerView.centerXAnchor],
+        [dfgjLabel.topAnchor constraintEqualToAnchor:containerView.topAnchor constant:122]
+    ]];
+    // 详细注释：
+    // dfgjLabel为20x12，系统字体10pt，颜色白色，行高0.86倍，文本“巅峰冠军”，父视图为containerView，水平居中，顶部距父视图122pt，文字垂直居中
 }
 
 // 实现轮播控件的页码联动
