@@ -193,6 +193,21 @@
     // 详细注释：
     // titleLabel 宽度等于 bottomBarView，内容左右居中，垂直居中
 
+    // 在 bottomBarView 中添加 play 图标
+    UIImageView *playImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"play"]];
+    playImageView.contentMode = UIViewContentModeScaleAspectFit;
+    [bottomBarView addSubview:playImageView];
+    playImageView.translatesAutoresizingMaskIntoConstraints = NO;
+    // 约束：宽11，高11，垂直居中，左侧距离 bottomBarView 左侧90pt
+    [NSLayoutConstraint activateConstraints:@[
+        [playImageView.widthAnchor constraintEqualToConstant:11],
+        [playImageView.heightAnchor constraintEqualToConstant:11],
+        [playImageView.centerYAnchor constraintEqualToAnchor:bottomBarView.centerYAnchor],
+        [playImageView.leadingAnchor constraintEqualToAnchor:bottomBarView.leadingAnchor constant:95]
+    ]];
+    // 详细注释：
+    // playImageView为11x11，垂直居中，左侧距bottomBarView 90pt，显示play图标
+
     // 在 containerView 中新增头像容器 profileContainerView，位于 component2ImageView 上层
     UIView *profileContainerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 41.14, 48.57)];
     profileContainerView.backgroundColor = [UIColor clearColor];
