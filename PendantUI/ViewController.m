@@ -297,6 +297,13 @@
     [self createCustomLabelWithText:@"唱歌十强争夺" fontSize:11 width:91 height:20 top:19 parent:containerView];
 }
 
+// 轮播区滑动时，联动更新pageControl
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat pageWidth = scrollView.frame.size.width;
+    NSInteger page = (NSInteger)(scrollView.contentOffset.x / pageWidth + 0.5);
+    self.pageControl.currentPage = page;
+}
+
 
 // plusButton点击事件，弹出提示框
 - (void)plusButtonTapped:(UIButton *)sender {

@@ -57,6 +57,7 @@
 - 位置：紧贴 gradientBackgroundView 下方
 - **内部包含：**
   - **titleLabel**：宽度等于 bottomBarView，内容“2024秋季盛典”，白色，居中
+  - **playImageView**：宽高11，垂直居中，左侧距离 bottomBarView 左侧95pt，显示“play”图标
 
 ### 3.5 其它标签
 - **“沾沾”标签**
@@ -88,7 +89,8 @@ ViewController.view
     │       ├── plusImageView (加号)
     │       └── plusButton (透明按钮, 14x14)
     ├── bottomBarView (底部, 112x20, 圆角10)
-    │   └── titleLabel ("2024秋季盛典")
+    │   ├── titleLabel ("2024秋季盛典")
+    │   └── playImageView (11x11, 左95, 垂直居中)
     ├── “沾沾”标签 (20x12, 顶部108, 居中)
     ├── “巅峰冠军”标签 (70x12, 顶部122, 居中)
     └── “唱歌十强争夺”标签 (91x20, 顶部19, 居中)
