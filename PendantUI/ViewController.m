@@ -309,6 +309,20 @@
     // 将渐变层添加到渐变视图
     [gradientView.layer addSublayer:gradientLayer];
     
+    // 在progressContainerView中添加fire图片
+    UIImageView *fireImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"fire"]];
+    fireImageView.contentMode = UIViewContentModeScaleAspectFit;
+    [progressContainerView addSubview:fireImageView];
+    fireImageView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // 设置fire图片的约束 (Width: 43.75px, Height: 14px, Top: 0px, Left: 10px)
+    [NSLayoutConstraint activateConstraints:@[
+        [fireImageView.widthAnchor constraintEqualToConstant:43.75],
+        [fireImageView.heightAnchor constraintEqualToConstant:14],
+        [fireImageView.topAnchor constraintEqualToAnchor:progressContainerView.topAnchor constant:0],
+        [fireImageView.leadingAnchor constraintEqualToAnchor:progressContainerView.leadingAnchor constant:10]
+    ]];
+    
     [self createCustomLabelWithText:@"玩法奖励抢先看 >"
                            fontSize:10
                               width:91
