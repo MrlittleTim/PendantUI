@@ -131,7 +131,7 @@
     carouselScrollView.bounces = YES; // 开启边缘回弹效果
     carouselScrollView.layer.cornerRadius = 12; // 设置圆角以匹配父视图
     carouselScrollView.layer.masksToBounds = YES; // 裁剪内容
-    [gradientBackgroundView addSubview:carouselScrollView]; // 添加到渐变背景上
+    [containerView addSubview:carouselScrollView]; // 添加到容器视图
     carouselScrollView.translatesAutoresizingMaskIntoConstraints = NO;
     // 约束：使其完全填满 gradientBackgroundView
     [NSLayoutConstraint activateConstraints:@[
@@ -148,6 +148,83 @@
     UIView *firstPageView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pageWidth, pageHeight)];
     firstPageView.backgroundColor = [UIColor clearColor]; // 保持透明，这样能看到下层的gradientBackgroundView
     [carouselScrollView addSubview:firstPageView];
+    // === 在 firstPageView 中添加头像容器和文本标签 ===
+    
+    // 1. 在 firstPageView 中添加头像容器 profileContainerView
+    UIView *profileContainerView = [[UIView alloc] init];
+    profileContainerView.backgroundColor = [UIColor clearColor];
+    [firstPageView addSubview:profileContainerView];
+    profileContainerView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // 约束：相对于 firstPageView 定位
+    [NSLayoutConstraint activateConstraints:@[
+        [profileContainerView.widthAnchor constraintEqualToConstant:41.14],
+        [profileContainerView.heightAnchor constraintEqualToConstant:48.57],
+        [profileContainerView.leadingAnchor constraintEqualToAnchor:firstPageView.leadingAnchor constant:35],
+        [profileContainerView.topAnchor constraintEqualToAnchor:firstPageView.topAnchor constant:56.43]
+    ]];
+    
+    // 2. 在 profileContainerView 内添加圆形头像
+    UIImageView *profileImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"profile"]];
+    profileImageView.contentMode = UIViewContentModeScaleAspectFill;
+    profileImageView.clipsToBounds = YES;
+    profileImageView.layer.cornerRadius = 41.14 / 2.0;
+    profileImageView.layer.masksToBounds = YES;
+    profileImageView.layer.borderWidth = 1.0;
+    profileImageView.layer.borderColor = [UIColor colorWithRed:1 green:0.887 blue:0.717 alpha:1].CGColor;
+    [profileContainerView addSubview:profileImageView];
+    profileImageView.translatesAutoresizingMaskIntoConstraints = NO;
+
+    [NSLayoutConstraint activateConstraints:@[
+        [profileImageView.widthAnchor constraintEqualToConstant:41.14],
+        [profileImageView.heightAnchor constraintEqualToConstant:41.14],
+        [profileImageView.centerXAnchor constraintEqualToAnchor:profileContainerView.centerXAnchor],
+        [profileImageView.topAnchor constraintEqualToAnchor:profileContainerView.topAnchor]
+    ]];
+    // 3. 在 firstPageView 中添加 "+"号图标容器
+    UIView *plusContainerView = [[UIView alloc] init];
+    plusContainerView.backgroundColor = [UIColor clearColor];
+    [firstPageView addSubview:plusContainerView];
+    [firstPageView bringSubviewToFront:plusContainerView];
+    plusContainerView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [plusContainerView.widthAnchor constraintEqualToConstant:12],
+        [plusContainerView.heightAnchor constraintEqualToConstant:12],
+        [plusContainerView.centerXAnchor constraintEqualToAnchor:profileContainerView.centerXAnchor],
+        [plusContainerView.topAnchor constraintEqualToAnchor:firstPageView.topAnchor constant:93]
+    ]];
+
+    UIImageView *plusImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"plus"]];
+    plusImageView.contentMode = UIViewContentModeScaleAspectFit;
+    plusImageView.clipsToBounds = YES;
+    [plusContainerView addSubview:plusImageView];
+    plusImageView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [plusImageView.leadingAnchor constraintEqualToAnchor:plusContainerView.leadingAnchor],
+        [plusImageView.trailingAnchor constraintEqualToAnchor:plusContainerView.trailingAnchor],
+        [plusImageView.topAnchor constraintEqualToAnchor:plusContainerView.topAnchor],
+        [plusImageView.bottomAnchor constraintEqualToAnchor:plusContainerView.bottomAnchor]
+    ]];
+
+    UIButton *plusButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    plusButton.backgroundColor = [UIColor clearColor];
+    plusButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [plusContainerView addSubview:plusButton];
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [plusButton.widthAnchor constraintEqualToConstant:14],
+        [plusButton.heightAnchor constraintEqualToConstant:14],
+        [plusButton.centerXAnchor constraintEqualToAnchor:plusContainerView.centerXAnchor],
+        [plusButton.centerYAnchor constraintEqualToAnchor:plusContainerView.centerYAnchor]
+    ]];
+    [plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    
+    // 4. 在 firstPageView 中添加文本标签
+    [self createCustomLabelWithText:@"唱歌十强争夺" fontSize:11 width:91 height:20 top:19 parent:firstPageView];
+    [self createCustomLabelWithText:@"沾沾" fontSize:10 width:20 height:12 top:108 parent:firstPageView];
+    [self createCustomLabelWithText:@"巅峰冠军" fontSize:10 width:70 height:12 top:122 parent:firstPageView];
     // 第二页：纯色方块
     UIView *secondPageView = [[UIView alloc] initWithFrame:CGRectMake(pageWidth, 0, pageWidth, pageHeight)];
     secondPageView.backgroundColor = [UIColor colorWithRed:0.8 green:0.2 blue:0.2 alpha:1]; // 示例纯色
@@ -165,7 +242,7 @@
     self.pageControl.pageIndicatorTintColor = [UIColor colorWithWhite:1 alpha:0.3]; // 未选中页的圆点颜色
     self.pageControl.currentPageIndicatorTintColor = [UIColor whiteColor]; // 选中页的圆点颜色
     self.pageControl.userInteractionEnabled = NO; // 禁止用户通过点击来切换页面
-    [gradientBackgroundView addSubview:self.pageControl]; // 添加到背景视图上
+    [containerView addSubview:self.pageControl]; // 添加到容器视图中
     self.pageControl.translatesAutoresizingMaskIntoConstraints = NO;
     // 仅使用 transform 进行大小缩放。
     self.pageControl.transform = CGAffineTransformMakeScale(0.6, 0.6);
@@ -233,96 +310,7 @@
     ]];
     // 详细注释：
     // playImageView为11x11，垂直居中，左侧距bottomBarView 95pt，显示play图标
-    // 在 containerView 中新增头像容器 profileContainerView，位于 component2ImageView 上层
-    // 这个容器用于包裹头像和加号按钮，方便整体定位
-    UIView *profileContainerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 41.14, 48.57)];
-    profileContainerView.backgroundColor = [UIColor clearColor];
-    [containerView addSubview:profileContainerView];
-    [containerView bringSubviewToFront:profileContainerView]; // 保证在 component2ImageView 上层
-    profileContainerView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 约束：精确定位头像容器的位置
-    [NSLayoutConstraint activateConstraints:@[
-        [profileContainerView.widthAnchor constraintEqualToConstant:41.14],
-        [profileContainerView.heightAnchor constraintEqualToConstant:48.57],
-        [profileContainerView.leadingAnchor constraintEqualToAnchor:containerView.leadingAnchor constant:35],
-        [profileContainerView.topAnchor constraintEqualToAnchor:containerView.topAnchor constant:56.43]
-    ]];
-    // 在 profileContainerView 内添加圆形头像
-    UIImageView *profileImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"profile"]];
-    profileImageView.contentMode = UIViewContentModeScaleAspectFill; // 填充模式，可能会裁剪图片
-    profileImageView.clipsToBounds = YES; // 裁剪超出边界的内容
-    [profileContainerView addSubview:profileImageView];
-    profileImageView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 约束：定义头像图片的大小和位置
-    [NSLayoutConstraint activateConstraints:@[
-        [profileImageView.widthAnchor constraintEqualToConstant:41.14],
-        [profileImageView.heightAnchor constraintEqualToConstant:41.14],
-        [profileImageView.centerXAnchor constraintEqualToAnchor:profileContainerView.centerXAnchor],
-        [profileImageView.topAnchor constraintEqualToAnchor:profileContainerView.topAnchor]
-    ]];
-    // 设置圆形和描边效果
-    profileImageView.layer.cornerRadius = 41.14 / 2.0; // 半径设为宽度的一半，形成圆形
-    profileImageView.layer.masksToBounds = YES; // 确保圆形裁剪生效
-    profileImageView.layer.borderWidth = 1.0; // 描边宽度
-    profileImageView.layer.borderColor = [UIColor colorWithRed:1 green:0.887 blue:0.717 alpha:1].CGColor; // 描边颜色
-    // 详细注释：
-    // profileContainerView 作为头像父容器，无背景色，内部图片为圆形，带1pt描边，描边色为RGB(1,0.887,0.717)
-    // 在 profileContainerView 中添加 12x12 的 plus 容器视图
-    // 这个小容器用于包裹加号图标和其点击区域
-    UIView *plusContainerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 12, 12)];
-    plusContainerView.backgroundColor = [UIColor clearColor];
-    [profileContainerView addSubview:plusContainerView];
-    [profileContainerView bringSubviewToFront:plusContainerView]; // 保证在 profileImageView 上层
-    plusContainerView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 约束：宽高12，水平居中，顶部距离 containerView 顶部93
-    [NSLayoutConstraint activateConstraints:@[
-        [plusContainerView.widthAnchor constraintEqualToConstant:12],
-        [plusContainerView.heightAnchor constraintEqualToConstant:12],
-        [plusContainerView.centerXAnchor constraintEqualToAnchor:profileContainerView.centerXAnchor],
-        [plusContainerView.topAnchor constraintEqualToAnchor:containerView.topAnchor constant:93]
-    ]];
-    // 在 plusContainerView 中添加 plus 图片
-    UIImageView *plusImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"plus"]];
-    plusImageView.contentMode = UIViewContentModeScaleAspectFit;
-    plusImageView.clipsToBounds = YES;
-    [plusContainerView addSubview:plusImageView];
-    plusImageView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 约束：让“+”号图片填满其父容器 `plusContainerView`
-    [NSLayoutConstraint activateConstraints:@[
-        [plusImageView.leadingAnchor constraintEqualToAnchor:plusContainerView.leadingAnchor],
-        [plusImageView.trailingAnchor constraintEqualToAnchor:plusContainerView.trailingAnchor],
-        [plusImageView.topAnchor constraintEqualToAnchor:plusContainerView.topAnchor],
-        [plusImageView.bottomAnchor constraintEqualToAnchor:plusContainerView.bottomAnchor]
-    ]];
-    // 详细注释：
-    // plusContainerView 为12x12，父视图为profileContainerView，水平居中，顶部距父视图93，内部plus图片填满，且在profile图片上层
-
-    // 在 plusContainerView 中心添加透明按钮，14x14
-    // 为了扩大点击区域，使用一个比图标本身(12x12)稍大的透明按钮(14x14)。
-    UIButton *plusButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    plusButton.backgroundColor = [UIColor clearColor]; // 透明背景
-    plusButton.translatesAutoresizingMaskIntoConstraints = NO;
-    [plusContainerView addSubview:plusButton];
-    // 约束：宽高14，中心与 plusContainerView 重合
-    [NSLayoutConstraint activateConstraints:@[
-        [plusButton.widthAnchor constraintEqualToConstant:14],
-        [plusButton.heightAnchor constraintEqualToConstant:14],
-        [plusButton.centerXAnchor constraintEqualToAnchor:plusContainerView.centerXAnchor],
-        [plusButton.centerYAnchor constraintEqualToAnchor:plusContainerView.centerYAnchor]
-    ]];
-    // 添加点击事件，当按钮被点击时，调用 `plusButtonTapped:` 方法
-    [plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-    // 详细注释：
-    // plusButton 为14x14透明按钮，覆盖plusContainerView中心，点击弹出提示框
-    // 使用之前创建的工具方法，快速添加几个文本标签
-    // 创建“沾沾”标签
-    [self createCustomLabelWithText:@"沾沾" fontSize:10 width:20 height:12 top:108 parent:containerView];
-    // 创建“巅峰冠军”标签
-    [self createCustomLabelWithText:@"巅峰冠军" fontSize:10 width:70 height:12 top:122 parent:containerView];
-    // 创建“唱歌十强争夺”标签
-    [self createCustomLabelWithText:@"唱歌十强争夺" fontSize:11 width:91 height:20 top:19 parent:containerView];
 }
-
 // 轮播区滑动时，联动更新pageControl
 // 这是UIScrollViewDelegate协议中的方法，每当滚动视图的内容发生滚动时，就会被调用。
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
