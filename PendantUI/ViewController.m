@@ -24,7 +24,7 @@
 @end
 
 // MARK: - 网络配置常量
-static NSString * const kServerBaseURL = @"http://172.23.17.226:8080"; // 您的实际服务器地址
+static NSString * const kServerBaseURL = @"http://172.23.18.107:8080"; // 您的实际服务器地址
 static NSString * const kPendantDataEndpoint = @"/pendant-data";
 static NSString * const kStatusEndpoint = @"/status";
 // 遵从UIScrollViewDelegate协议，用于监听滚动视图事件
@@ -239,7 +239,6 @@ static NSString * const kStatusEndpoint = @"/status";
     UIAlertAction *retryAction = [UIAlertAction actionWithTitle:@"重试" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         [self fetchPendantData];
     }];
-    
     UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
     
     [alert addAction:retryAction];
@@ -330,13 +329,40 @@ static NSString * const kStatusEndpoint = @"/status";
         [containerView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [containerView.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor]
     ]];
+    // 2. 创建轮播控件（UIScrollView + 分页）
+    // 通过UIScrollView实现一个可以左右滑动的轮播视图。
+    UIScrollView *carouselScrollView = [[UIScrollView alloc] init];
+    carouselScrollView.pagingEnabled = YES; // 开启分页效果，每次滑动都停在整页位置
+    carouselScrollView.showsHorizontalScrollIndicator = NO; // 隐藏水平滚动条
+    carouselScrollView.showsVerticalScrollIndicator = NO; // 隐藏垂直滚动条
+    carouselScrollView.bounces = YES; // 开启边缘回弹效果
+    carouselScrollView.backgroundColor = [UIColor clearColor]; // 设置为透明
+    [containerView addSubview:carouselScrollView]; // 添加到容器视图
+    carouselScrollView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // 设置轮播视图的约束，占据容器顶部的151高度区域
+    [NSLayoutConstraint activateConstraints:@[
+        [carouselScrollView.leadingAnchor constraintEqualToAnchor:containerView.leadingAnchor constant:0.5], // 左侧对齐，微调0.5pt
+        [carouselScrollView.trailingAnchor constraintEqualToAnchor:containerView.trailingAnchor constant:-0.5], // 右侧对齐，微调0.5pt
+        [carouselScrollView.topAnchor constraintEqualToAnchor:containerView.topAnchor],
+        [carouselScrollView.heightAnchor constraintEqualToConstant:151]
+    ]];
+    
+    // 设置轮播内容尺寸
+    CGFloat pageWidth = 111; // 页面宽度
+    CGFloat pageHeight = 151; // 页面高度
+    carouselScrollView.contentSize = CGSizeMake(pageWidth * 2, pageHeight); // 设置可滚动区域的总大小
 
-    // 2. 创建 gradientBackgroundView 视觉背景
-    // 这是挂件的主要背景，带有一个复杂的渐变效果。
-    UIView *gradientBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 111, 151)];
+    // 3. 创建第一页内容（包含渐变背景和装饰图片）
+    UIView *firstPageView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pageWidth, pageHeight)];
+    firstPageView.backgroundColor = [UIColor clearColor]; // 保持透明
+    [carouselScrollView addSubview:firstPageView];
+    // 3.1 在 firstPageView 中添加渐变背景
+    UIView *gradientBackgroundView = [[UIView alloc] init];
     gradientBackgroundView.alpha = 0.88; // 设置透明度
     gradientBackgroundView.layer.cornerRadius = 12; // 设置圆角
     gradientBackgroundView.layer.masksToBounds = YES; // 裁剪超出圆角的部分
+    
     // 添加渐变层 (CAGradientLayer)
     CAGradientLayer *layer0 = [CAGradientLayer layer];
     // 设置渐变颜色数组
@@ -346,66 +372,37 @@ static NSString * const kStatusEndpoint = @"/status";
     // 设置颜色分布的位置
     layer0.locations = @[@0, @0.42, @0.83];
     // 设置渐变的起点和终点，定义渐变方向
-    layer0.startPoint = CGPointMake(0.25, 0.5);
-    layer0.endPoint = CGPointMake(0.75, 0.5);
-    // 应用仿射变换（旋转、缩放、平移），使渐变呈现一个倾斜的效果
-    layer0.affineTransform = CGAffineTransformMake(-0.59, 1.02, -0.65, -0.29, 1.1, 0.15);
-    // 设置渐变层的大小和位置，使其完全覆盖背景视图
-    layer0.bounds = CGRectInset(gradientBackgroundView.bounds, -0.5 * gradientBackgroundView.bounds.size.width, -0.5 * gradientBackgroundView.bounds.size.height);
-    layer0.position = CGPointMake(CGRectGetMidX(gradientBackgroundView.bounds), CGRectGetMidY(gradientBackgroundView.bounds));
+    layer0.startPoint = CGPointMake(0.0, 0.0);  // 左上角
+    layer0.endPoint = CGPointMake(1.0, 1.0);    // 右下角
+    // 直接设置渐变层的大小和位置，使其完全覆盖背景视图
+    layer0.frame = CGRectMake(0, 0, pageWidth, pageHeight);
     [gradientBackgroundView.layer addSublayer:layer0]; // 将渐变层添加到背景视图的layer上
-    [containerView addSubview:gradientBackgroundView]; // 将背景视图添加到逻辑容器中
+    
+    [firstPageView addSubview:gradientBackgroundView]; // 将背景视图添加到第一页
     gradientBackgroundView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 设置 gradientBackgroundView 的布局约束
+    // 设置 gradientBackgroundView 的布局约束，填满整个 firstPageView
     [NSLayoutConstraint activateConstraints:@[
-        [gradientBackgroundView.widthAnchor constraintEqualToConstant:111],
-        [gradientBackgroundView.heightAnchor constraintEqualToConstant:151],
-        [gradientBackgroundView.topAnchor constraintEqualToAnchor:containerView.topAnchor], // 与容器顶部对齐
-        [gradientBackgroundView.centerXAnchor constraintEqualToAnchor:containerView.centerXAnchor] // 水平居中
+        [gradientBackgroundView.leadingAnchor constraintEqualToAnchor:firstPageView.leadingAnchor],
+        [gradientBackgroundView.trailingAnchor constraintEqualToAnchor:firstPageView.trailingAnchor],
+        [gradientBackgroundView.topAnchor constraintEqualToAnchor:firstPageView.topAnchor],
+        [gradientBackgroundView.bottomAnchor constraintEqualToAnchor:firstPageView.bottomAnchor]
     ]];
 
-    // 2.1 在 gradientBackgroundView 上方添加 Component2 图片
-    // 这是一个装饰性图片，位于背景之上，增加了视觉层次感。
+    // 3.2 在 firstPageView 中添加 Component2 装饰图片
     UIImageView *component2ImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Component2"]];
     component2ImageView.contentMode = UIViewContentModeScaleAspectFit; // 保持图片比例缩放
-    [containerView addSubview:component2ImageView]; // 注意：添加到containerView，而不是gradientBackgroundView
+    [firstPageView addSubview:component2ImageView]; // 添加到第一页
     component2ImageView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 约束：顶部对齐 containerView 顶部，水平居中，宽度为112，不限制高度
+    // 约束：水平居中，顶部对齐，宽度为112（超出页面宽度以营造装饰效果）
     [NSLayoutConstraint activateConstraints:@[
-        [component2ImageView.centerXAnchor constraintEqualToAnchor:containerView.centerXAnchor],
-        [component2ImageView.topAnchor constraintEqualToAnchor:containerView.topAnchor],
+        [component2ImageView.centerXAnchor constraintEqualToAnchor:firstPageView.centerXAnchor],
+        [component2ImageView.topAnchor constraintEqualToAnchor:firstPageView.topAnchor],
         [component2ImageView.widthAnchor constraintEqualToConstant:112]
     ]];
-    // 详细注释：
-    // component2ImageView 显示 Component2.png，宽度为112，高度自适应，位于 gradientBackgroundView 顶部正中
-    // 2.2 在 gradientBackgroundView 区域添加轮播控件（UIScrollView + 分页）
-    // 通过UIScrollView实现一个可以左右滑动的轮播视图。
-    UIScrollView *carouselScrollView = [[UIScrollView alloc] init];
-    carouselScrollView.pagingEnabled = YES; // 开启分页效果，每次滑动都停在整页位置
-    carouselScrollView.showsHorizontalScrollIndicator = NO; // 隐藏水平滚动条
-    carouselScrollView.showsVerticalScrollIndicator = NO; // 隐藏垂直滚动条
-    carouselScrollView.bounces = YES; // 开启边缘回弹效果
-    carouselScrollView.layer.cornerRadius = 12; // 设置圆角以匹配父视图
-    carouselScrollView.layer.masksToBounds = YES; // 裁剪内容
-    [containerView addSubview:carouselScrollView]; // 添加到容器视图
-    carouselScrollView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 约束：使其完全填满 gradientBackgroundView
-    [NSLayoutConstraint activateConstraints:@[
-        [carouselScrollView.leadingAnchor constraintEqualToAnchor:gradientBackgroundView.leadingAnchor],
-        [carouselScrollView.trailingAnchor constraintEqualToAnchor:gradientBackgroundView.trailingAnchor],
-        [carouselScrollView.topAnchor constraintEqualToAnchor:gradientBackgroundView.topAnchor],
-        [carouselScrollView.bottomAnchor constraintEqualToAnchor:gradientBackgroundView.bottomAnchor]
-    ]];
-    // 添加两个页面：第一页为原有内容，第二页为箭头图标页面
-    CGFloat pageWidth = 111; // 页面宽度
-    CGFloat pageHeight = 151; // 页面高度
-    carouselScrollView.contentSize = CGSizeMake(pageWidth * 2, pageHeight); // 设置可滚动区域的总大小
-    // 首页内容（可放置原有内容或留空）
-    UIView *firstPageView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, pageWidth, pageHeight)];
-    firstPageView.backgroundColor = [UIColor clearColor]; // 保持透明，这样能看到下层的gradientBackgroundView
-    [carouselScrollView addSubview:firstPageView];
+
     // === 在 firstPageView 中添加头像容器和文本标签 ===
-    // 1. 在 firstPageView 中添加头像容器 profileContainerView
+    
+    // 4. 在 firstPageView 中添加头像容器 profileContainerView
     UIView *profileContainerView = [[UIView alloc] init];
     profileContainerView.backgroundColor = [UIColor clearColor];
     [firstPageView addSubview:profileContainerView];
@@ -417,7 +414,7 @@ static NSString * const kStatusEndpoint = @"/status";
         [profileContainerView.leadingAnchor constraintEqualToAnchor:firstPageView.leadingAnchor constant:35],
         [profileContainerView.topAnchor constraintEqualToAnchor:firstPageView.topAnchor constant:56.43]
     ]];
-    // 2. 在 profileContainerView 内添加圆形头像
+    // 5. 在 profileContainerView 内添加圆形头像
     UIImageView *profileImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"profile"]];
     profileImageView.contentMode = UIViewContentModeScaleAspectFill;
     profileImageView.clipsToBounds = YES;
@@ -433,13 +430,13 @@ static NSString * const kStatusEndpoint = @"/status";
         [profileImageView.centerXAnchor constraintEqualToAnchor:profileContainerView.centerXAnchor],
         [profileImageView.topAnchor constraintEqualToAnchor:profileContainerView.topAnchor]
     ]];
-    // 3. 在 firstPageView 中添加 "+"号图标容器
+    
+    // 6. 在 firstPageView 中添加 "+"号图标容器
     UIView *plusContainerView = [[UIView alloc] init];
     plusContainerView.backgroundColor = [UIColor clearColor];
     [firstPageView addSubview:plusContainerView];
     [firstPageView bringSubviewToFront:plusContainerView];
     plusContainerView.translatesAutoresizingMaskIntoConstraints = NO;
-    
     [NSLayoutConstraint activateConstraints:@[
         [plusContainerView.widthAnchor constraintEqualToConstant:12],
         [plusContainerView.heightAnchor constraintEqualToConstant:12],
@@ -452,13 +449,13 @@ static NSString * const kStatusEndpoint = @"/status";
     plusImageView.clipsToBounds = YES;
     [plusContainerView addSubview:plusImageView];
     plusImageView.translatesAutoresizingMaskIntoConstraints = NO;
+    
     [NSLayoutConstraint activateConstraints:@[
         [plusImageView.leadingAnchor constraintEqualToAnchor:plusContainerView.leadingAnchor],
         [plusImageView.trailingAnchor constraintEqualToAnchor:plusContainerView.trailingAnchor],
         [plusImageView.topAnchor constraintEqualToAnchor:plusContainerView.topAnchor],
         [plusImageView.bottomAnchor constraintEqualToAnchor:plusContainerView.bottomAnchor]
     ]];
-
     UIButton *plusButton = [UIButton buttonWithType:UIButtonTypeCustom];
     plusButton.backgroundColor = [UIColor clearColor];
     plusButton.translatesAutoresizingMaskIntoConstraints = NO;
@@ -471,65 +468,110 @@ static NSString * const kStatusEndpoint = @"/status";
         [plusButton.centerYAnchor constraintEqualToAnchor:plusContainerView.centerYAnchor]
     ]];
     [plusButton addTarget:self action:@selector(plusButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-    // 4. 在 firstPageView 中添加文本标签并保存引用以便动态更新
+    // 7. 在 firstPageView 中添加文本标签并保存引用以便动态更新
     self.mainTitleLabel = [self createCustomLabelWithText:self.pendantData.mainTitle fontSize:11 width:91 height:20 top:19 color:[UIColor whiteColor] parent:firstPageView];
     self.userNameLabel = [self createCustomLabelWithText:self.pendantData.userName fontSize:10 width:20 height:12 top:108 color:[UIColor whiteColor] parent:firstPageView];
     self.userTitleLabel = [self createCustomLabelWithText:self.pendantData.userTitle fontSize:10 width:70 height:12 top:122 color:[UIColor whiteColor] parent:firstPageView];
-    // 第二页：箭头图标页面
+    
+    // 8. 创建第二页内容（心愿挑战页面，渐变背景）
     UIView *secondPageView = [[UIView alloc] initWithFrame:CGRectMake(pageWidth, 0, pageWidth, pageHeight)];
-    secondPageView.backgroundColor = [UIColor clearColor]; // 改为透明背景，显示下层渐变
+    secondPageView.backgroundColor = [UIColor clearColor]; // 设置为透明，使用渐变背景
     secondPageView.layer.cornerRadius = 12;
     secondPageView.layer.masksToBounds = YES;
     [carouselScrollView addSubview:secondPageView];
     
-    // 在 secondPageView 中添加容器视图
-    UIView *arrowContainerView = [[UIView alloc] init];
-    arrowContainerView.backgroundColor = [UIColor clearColor];
-    [secondPageView addSubview:arrowContainerView];
-    arrowContainerView.translatesAutoresizingMaskIntoConstraints = NO;
+    // 8.1 为 secondPageView 添加渐变背景
+    UIView *secondPageGradientView = [[UIView alloc] init];
+    secondPageGradientView.layer.cornerRadius = 12;
+    secondPageGradientView.layer.masksToBounds = YES;
+    [secondPageView addSubview:secondPageGradientView];
+    secondPageGradientView.translatesAutoresizingMaskIntoConstraints = NO;
     
-    // 设置容器视图约束，填满整个 secondPageView
+    // 设置渐变背景视图约束，填满整个 secondPageView
     [NSLayoutConstraint activateConstraints:@[
-        [arrowContainerView.leadingAnchor constraintEqualToAnchor:secondPageView.leadingAnchor],
-        [arrowContainerView.trailingAnchor constraintEqualToAnchor:secondPageView.trailingAnchor],
-        [arrowContainerView.topAnchor constraintEqualToAnchor:secondPageView.topAnchor],
-        [arrowContainerView.bottomAnchor constraintEqualToAnchor:secondPageView.bottomAnchor]
+        [secondPageGradientView.leadingAnchor constraintEqualToAnchor:secondPageView.leadingAnchor],
+        [secondPageGradientView.trailingAnchor constraintEqualToAnchor:secondPageView.trailingAnchor],
+        [secondPageGradientView.topAnchor constraintEqualToAnchor:secondPageView.topAnchor],
+        [secondPageGradientView.bottomAnchor constraintEqualToAnchor:secondPageView.bottomAnchor]
     ]];
     
-    // 在容器视图中添加箭头图片
-    UIImageView *arrowImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"arrow"]];
-    arrowImageView.contentMode = UIViewContentModeScaleAspectFit;
-    [arrowContainerView addSubview:arrowImageView];
-    arrowImageView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 设置箭头图片约束：Width: 38px, Height: 38px, Top: 45px, Left: 37px
+    // 创建背景渐变层
+    CAGradientLayer *backgroundGradient = [CAGradientLayer layer];
+    backgroundGradient.frame = CGRectMake(0, 0, pageWidth, pageHeight);
+    backgroundGradient.cornerRadius = 12;
+    // 设置背景渐变颜色：从 rgba(81, 50, 36, 0) 到 rgba(28, 13, 13, 1)
+    backgroundGradient.colors = @[
+        (__bridge id)[UIColor colorWithRed:81.0/255.0 green:50.0/255.0 blue:36.0/255.0 alpha:0.0].CGColor,
+        (__bridge id)[UIColor colorWithRed:28.0/255.0 green:13.0/255.0 blue:13.0/255.0 alpha:1.0].CGColor
+    ];
+    backgroundGradient.startPoint = CGPointMake(0.0, 0.0);  // 左上角
+    backgroundGradient.endPoint = CGPointMake(1.0, 1.0);    // 右下角
+    [secondPageGradientView.layer addSublayer:backgroundGradient];
+    // 8.2 为 secondPageView 添加渐变边框
+    UIView *borderView = [[UIView alloc] init];
+    borderView.backgroundColor = [UIColor clearColor];
+    borderView.layer.cornerRadius = 12;
+    borderView.layer.masksToBounds = YES;
+    [secondPageView addSubview:borderView];
+    [secondPageView sendSubviewToBack:borderView]; // 将边框视图置于最底层
+    borderView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // 设置边框视图约束，比内容视图大1px来形成边框效果
     [NSLayoutConstraint activateConstraints:@[
-        [arrowImageView.widthAnchor constraintEqualToConstant:38],
-        [arrowImageView.heightAnchor constraintEqualToConstant:38],
-        [arrowImageView.leadingAnchor constraintEqualToAnchor:arrowContainerView.leadingAnchor constant:37],
-        [arrowImageView.topAnchor constraintEqualToAnchor:arrowContainerView.topAnchor constant:45]
+        [borderView.leadingAnchor constraintEqualToAnchor:secondPageView.leadingAnchor constant:-1],
+        [borderView.trailingAnchor constraintEqualToAnchor:secondPageView.trailingAnchor constant:1],
+        [borderView.topAnchor constraintEqualToAnchor:secondPageView.topAnchor constant:-1],
+        [borderView.bottomAnchor constraintEqualToAnchor:secondPageView.bottomAnchor constant:1]
+    ]];
+    
+    // 创建边框渐变层
+    CAGradientLayer *borderGradient = [CAGradientLayer layer];
+    borderGradient.frame = CGRectMake(0, 0, pageWidth + 2, pageHeight + 2);
+    borderGradient.cornerRadius = 12;
+    // 设置边框渐变颜色：从 rgba(54, 40, 29, 0) 到 rgba(191, 126, 79, 1)
+    borderGradient.colors = @[
+        (__bridge id)[UIColor colorWithRed:54.0/255.0 green:40.0/255.0 blue:29.0/255.0 alpha:0.0].CGColor,
+        (__bridge id)[UIColor colorWithRed:191.0/255.0 green:126.0/255.0 blue:79.0/255.0 alpha:1.0].CGColor
+    ];
+    borderGradient.startPoint = CGPointMake(0.0, 0.0);  // 左上角
+    borderGradient.endPoint = CGPointMake(1.0, 1.0);    // 右下角
+    [borderView.layer addSublayer:borderGradient];
+    // 添加新的 "page2" 图片，替换原来的箭头图片
+    UIImageView *page2ImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"page2"]];
+    page2ImageView.contentMode = UIViewContentModeScaleAspectFit;
+    [secondPageView addSubview:page2ImageView];
+    page2ImageView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // 设置 page2 图片约束：Width: 90px, Height: 93px, Top: 1px, Left: 10px
+    [NSLayoutConstraint activateConstraints:@[
+        [page2ImageView.widthAnchor constraintEqualToConstant:90],
+        [page2ImageView.heightAnchor constraintEqualToConstant:93],
+        [page2ImageView.topAnchor constraintEqualToAnchor:secondPageView.topAnchor constant:1],
+        [page2ImageView.leadingAnchor constraintEqualToAnchor:secondPageView.leadingAnchor constant:10]
     ]];
     // 创建第二页文本标签并保存引用以便动态更新
-    self.challengeTitleLabel = [self createCustomLabelWithText:self.pendantData.challengeTitle fontSize:13 width:91 height:20 top:19 color:[UIColor whiteColor] parent:secondPageView];
-    self.progressTextLabel = [self createCustomLabelWithText:self.pendantData.progressText fontSize:10 width:91 height:20 top:87 color:[UIColor whiteColor] parent:secondPageView];
-    // 添加新的容器视图 (54x14，位于 top:107, left:14)
+//    self.challengeTitleLabel = [self createCustomLabelWithText:self.pendantData.challengeTitle fontSize:13 width:91 height:20 top:19 color:[UIColor whiteColor] parent:secondPageView];
+    self.progressTextLabel = [self createCustomLabelWithText:self.pendantData.progressText fontSize:10 width:91 height:20 top:98 color:[UIColor whiteColor] parent:secondPageView];
+    // 添加新的容器视图 (54x14，位于 top:107, left:5)
     UIView *progressContainerView = [[UIView alloc] init];
     progressContainerView.backgroundColor = [UIColor clearColor];
     [secondPageView addSubview:progressContainerView];
     progressContainerView.translatesAutoresizingMaskIntoConstraints = NO;
-    
     // 设置容器视图的约束
     [NSLayoutConstraint activateConstraints:@[
         [progressContainerView.widthAnchor constraintEqualToConstant:54],
         [progressContainerView.heightAnchor constraintEqualToConstant:14],
-        [progressContainerView.topAnchor constraintEqualToAnchor:secondPageView.topAnchor constant:107],
-        [progressContainerView.leadingAnchor constraintEqualToAnchor:secondPageView.leadingAnchor constant:14]
+        [progressContainerView.topAnchor constraintEqualToAnchor:secondPageView.topAnchor constant:112],
+        [progressContainerView.leadingAnchor constraintEqualToAnchor:secondPageView.leadingAnchor constant:5]
     ]];
+    
     // 在容器内添加渐变视图
     UIView *gradientView = [[UIView alloc] init];
     gradientView.layer.cornerRadius = 5; // 设置圆角为高度的一半（10÷2=5）
     gradientView.layer.masksToBounds = YES;
     [progressContainerView addSubview:gradientView];
     gradientView.translatesAutoresizingMaskIntoConstraints = NO;
+    
     // 设置渐变视图的约束（宽54px、高10px，在容器内垂直居中）
     [NSLayoutConstraint activateConstraints:@[
         [gradientView.widthAnchor constraintEqualToConstant:54],
@@ -558,24 +600,21 @@ static NSString * const kStatusEndpoint = @"/status";
     fireImageView.contentMode = UIViewContentModeScaleAspectFit;
     [progressContainerView addSubview:fireImageView];
     fireImageView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 设置fire图片的约束 (Width: 43.75px, Height: 14px, Top: 0px, Left: 10px)
+    // 设置fire图片的约束 (Width: 43.75px, Height: 14px, Top: -2px, Left: 10px)
     [NSLayoutConstraint activateConstraints:@[
         [fireImageView.widthAnchor constraintEqualToConstant:43.75],
         [fireImageView.heightAnchor constraintEqualToConstant:14],
-        [fireImageView.topAnchor constraintEqualToAnchor:progressContainerView.topAnchor constant:0],
+        [fireImageView.topAnchor constraintEqualToAnchor:progressContainerView.topAnchor constant:-2],
         [fireImageView.leadingAnchor constraintEqualToAnchor:progressContainerView.leadingAnchor constant:10]
     ]];
     self.rewardTextLabel = [self createCustomLabelWithText:self.pendantData.rewardText
-                                               fontSize:10
-                                                  width:91
-                                                 height:20
-                                                    top:125
-                                                  color:[UIColor colorWithRed:255.0/255.0 green:233.0/255.0 blue:190.0/255.0 alpha:1.0]
-                                                 parent:secondPageView];
-    // 详细注释：
-    // carouselScrollView 为轮播控件，支持左右滑动分页
-    // 首页为原有内容，左划后显示同尺寸同圆角的箭头图标页面
-    // 2.3 在 carouselScrollView 下方添加 UIPageControl 作为页码指示器
+                                                  fontSize:10
+                                                     width:91
+                                                    height:20
+                                                       top:122
+                                                     color:[UIColor colorWithRed:255.0/255.0 green:233.0/255.0 blue:190.0/255.0 alpha:1.0]
+                                                    parent:secondPageView];
+    // 9. 在 containerView 下方添加 UIPageControl 作为页码指示器
     // 这个小圆点就是页面指示器，用来显示当前是第几页，以及总共有多少页。
     self.pageControl = [[UIPageControl alloc] init];
     self.pageControl.numberOfPages = 2; // 总页数
@@ -585,19 +624,18 @@ static NSString * const kStatusEndpoint = @"/status";
     self.pageControl.userInteractionEnabled = NO; // 禁止用户通过点击来切换页面
     [containerView addSubview:self.pageControl]; // 添加到容器视图中
     self.pageControl.translatesAutoresizingMaskIntoConstraints = NO;
+    
     // 仅使用 transform 进行大小缩放。
     self.pageControl.transform = CGAffineTransformMakeScale(0.6, 0.6);
-
-    // 对于bottomAnchor，正值会使视图向下移动
+    // 页面指示器位于轮播视图下方7pt的位置
     [NSLayoutConstraint activateConstraints:@[
-        [self.pageControl.centerXAnchor constraintEqualToAnchor:gradientBackgroundView.centerXAnchor],
-        [self.pageControl.bottomAnchor constraintEqualToAnchor:gradientBackgroundView.bottomAnchor constant:7]
+        [self.pageControl.centerXAnchor constraintEqualToAnchor:carouselScrollView.centerXAnchor],
+        [self.pageControl.topAnchor constraintEqualToAnchor:carouselScrollView.bottomAnchor constant:-20]
     ]];
+    
     // 设置UIScrollView的代理为当前视图控制器，以便监听滚动事件
-    // 需在 ViewController.h 或 .m 的 @interface 中声明遵从 <UIScrollViewDelegate> 协议
     carouselScrollView.delegate = self;
-
-    // 3. 创建 bottomBarView 底部栏
+    // 10. 创建 bottomBarView 底部栏
     // 这是位于挂件主体下方的深色条状视图。
     UIView *bottomBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 112, 20)];
     bottomBarView.layer.backgroundColor = [UIColor colorWithRed:0.253 green:0.118 blue:0.012 alpha:1].CGColor;
@@ -606,18 +644,19 @@ static NSString * const kStatusEndpoint = @"/status";
     bottomBarView.layer.masksToBounds = YES;
     [containerView addSubview:bottomBarView];
     bottomBarView.translatesAutoresizingMaskIntoConstraints = NO;
-    // 设置 bottomBarView 尺寸和位置
+    
+    // 设置 bottomBarView 尺寸和位置（位于轮播视图下方）
     [NSLayoutConstraint activateConstraints:@[
         [bottomBarView.widthAnchor constraintEqualToConstant:112],
         [bottomBarView.heightAnchor constraintEqualToConstant:20],
-        // 关键约束：顶部紧贴gradientBackgroundView的底部
-        [bottomBarView.topAnchor constraintEqualToAnchor:gradientBackgroundView.bottomAnchor constant:1],
+        // 关键约束：顶部距离轮播视图底部一定距离
+        [bottomBarView.topAnchor constraintEqualToAnchor:carouselScrollView.bottomAnchor constant:1],
         [bottomBarView.centerXAnchor constraintEqualToAnchor:containerView.centerXAnchor]
     ]];
-    // 4. 在 bottomBarView 内部居中添加文字标签
+    
+    // 11. 在 bottomBarView 内部居中添加文字标签
     self.eventTitleLabel = [self createCustomLabelWithText:self.pendantData.eventTitle fontSize:10 width:93 height:14 top:3.5 color:[UIColor colorWithRed:1 green:1 blue:1 alpha:1] parent:bottomBarView];
-    // 详细注释：
-    // titleLabel 宽度等于 bottomBarView，内容左右居中，垂直居中
+    
     // 在 bottomBarView 中添加 play 图标
     UIImageView *playImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"play"]];
     playImageView.contentMode = UIViewContentModeScaleAspectFit;
@@ -630,8 +669,6 @@ static NSString * const kStatusEndpoint = @"/status";
         [playImageView.centerYAnchor constraintEqualToAnchor:bottomBarView.centerYAnchor], // 垂直居中
         [playImageView.leadingAnchor constraintEqualToAnchor:bottomBarView.leadingAnchor constant:95] // 距离左边95pt
     ]];
-    // 详细注释：
-    // playImageView为11x11，垂直居中，左侧距bottomBarView 95pt，显示play图标
 }
 // MARK: - 辅助方法 (Helper Methods)
 
@@ -654,7 +691,6 @@ static NSString * const kStatusEndpoint = @"/status";
     NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
     style.lineHeightMultiple = 0.86;
     style.alignment = NSTextAlignmentCenter;
-    
     NSDictionary *attr = @{
         NSFontAttributeName: [UIFont systemFontOfSize:fontSize],
         NSParagraphStyleAttributeName: style
@@ -663,7 +699,6 @@ static NSString * const kStatusEndpoint = @"/status";
     
     [parent addSubview:label];
     label.translatesAutoresizingMaskIntoConstraints = NO;
-    
     [NSLayoutConstraint activateConstraints:@[
         [label.widthAnchor constraintEqualToConstant:width],
         [label.heightAnchor constraintEqualToConstant:height],
